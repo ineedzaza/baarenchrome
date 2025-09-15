@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Image Editor</title>
+        <link rel="stylesheet" href="../style.css">
+        <script src="main.js" defer></script>
+        <script src="GIFEncoder.js" defer></script>
+        <script src="LZWEncoder.js" defer></script>
+        <script src="NeuQuant.js" defer></script>
+        
+    </head>
+    <body>
+        <div id="container">
+            <div id="left-half">
+
+                <div id="pagecontainer">
+
+                    <p style="font-size:calc(min(4vw,5vh))">Image Editor</p>
+                    <div id="tabs" class="tabs">
+                        <p onclick=switchPage(0)>Project</p>
+                        <p class="select" onclick=switchPage(1)>Effects</p>
+                        <p onclick=switchPage(2)>Export</p>
+                        <p onclick=switchPage(3)>New Canvas</p>
+                        <p onclick=switchPage(4)>Options</p>
+                        <p onclick=switchPage(5)>About</p>
+                        <p onclick=switchPage(6)>Help</p>
+                    </div>
+
+                </div>
+
+                <div id="page-1" hidden>
+                    <p style="font-size:calc(min(5vw,7.5vh))">Project</p><br>
+                        <p style="font-size:1.6vh;padding-left:4vw;padding-right:4vw">
+                            Image Editor project files are stored as .txt files which contains the JSON of effects, their code and the pixel data of the source image as data URLs.
+                        </p><br>
+                        <input id="upload-project" type="file" hidden="true"></input>
+                        <button onclick="document.getElementById('upload-project').click()">Load Project</button><br><br>
+                        <label style="display:inline-block">Save as:</label>
+                        <input id="project-name" size="30" value="Image-Editor-Project"></input>
+                        <label style="display:inline-block">.txt</label><br>
+                        <button onclick="saveProject()">Save Project</button><br></br>
+                        <p style="font-size:1.6vh;padding-left:4vw;padding-right:4vw">
+                            This project's session gets autosaved every 10 seconds. You will get back to where you left off after refreshing your page.
+                        </p><br>
+                        <button onclick="saveSession()">Save this Session</button><br><br>
+                    <p></p>
+                </div>
+
+                <div id="page-2">
+                    <div id="effectsheader">
+                        <p>Effects</p><br><br>
+                        <button onclick="addeffect()">+ Add</button>
+                        <button onclick="deleteeffect()">- Delete</button>
+                        <button onclick="cloneeffect()">* Clone</button>
+                        <button onclick="bypasseffect()">/ Bypass</button>
+                        <button onclick="renameeffect()">Rename</button>
+                        <button onclick="moveLeft()">&lt;- Move Left</button>
+                        <button onclick="moveRight()">Move Right -&gt;</button>
+                    </div>
+                    <div id="effectsc">
+                    </div>
+                    <textarea spellcheck=false id="input">return v</textarea><br>
+                    <button onclick="render(true)">Render Image</button>
+                    <p style="display:inline-block;margin-left:40px">Auto</p>
+                    <label class="checkc">
+                        <input id="s-auto" type="checkbox" checked="true">
+                            <span class="checkmark"></span>
+                        </input>
+                    </label>
+                    <button onclick="copyImage()">Copy</button>
+                    <button onclick="saveImage()">Save (Download)</button>
+                </div>
+
+                <div id="page-3" hidden>
+                    <p style="font-size:calc(min(4vw,6vh))">Export</p><br>
+                    <p style="font-size:1.6vh;padding-left:4vw;padding-right:4vw">To preserve GIF duration, your FPS must be such that 100/FPS is an integer.<br>Possible gif framerates: 10, 14.28, 16.67, 20, 25, 33.33, 50, 100<br><br>Also, lower number in GIF quality = better quality.</p><br>
+                    <label style="display:inline-block">Frames:</label>
+                    <input id="frames" size="6" value="100"></input>
+                    <label style="display:inline-block">FPS:</label>
+                    <input id="fps" size="6" value="30"></input>
+                    <label style="display:inline-block">Quality:</label>
+                    <input id="quality" size="6" value="32"></input><br>
+                    <label style="display:inline-block">Rendering speed:</label>
+                    <input id="render-speed" size="6" value="100"></input>
+                    <p style="display:inline-block">ms</p><br>
+                    <p id="calclength"></p>
+                    <label style="display:inline-block">File name:</label>
+                    <input id="gifname" size="20" value="Untitled"></input>
+                    <label style="display:inline-block">.gif</label><br>
+                    <p style="font-size:1.6vh;padding-left:4vw;padding-right:4vw">There is a variable called 'V' which denotes the nth frame when rendering. <br> V = 1 at frame 1, V = 2 at frame 2, etc.</p>
+                    <br>
+                    <button id="export" onclick='exportgif()'>Export as GIF!</button>
+                </div>
+
+                <div id="page-4" hidden>
+                    <p style="font-size:calc(min(5vw,7.5vh))">New Canvas</p><br>
+
+
+
+                    <label style="display:inline-block">Image dimensions:</label><br>
+
+                        <input id="imagewidth" size="6"></input>
+                        <label>&times;</label>
+                        <input id="imageheight" size="6"></input><br><br>
+                        <button onclick="newCanvas($('imagewidth').value || 256,$('imageheight').value || 256)">Create!</button><br>
+
+                    <br>
+
+                    <p>Or upload image:</p>
+
+                    <label class="border yellow">Upload Image
+                        <input type='file' id="upload"></input>
+                    </label>
+
+                </div>
+
+                <div id="page-5" hidden>
+                    <p style="font-size:calc(min(5vw,7.5vh))">Options</p><br>
+                    <p style="display:inline-block;margin-left:40px">Fit Image</p>
+                    <label class="checkc">
+                        <input id="s-fitimage" type="checkbox" checked="true">
+                            <span class="checkmark"></span>
+                        </input>
+                    </label>
+                </div>
+
+                <div id="page-6" hidden>
+                    <p style="font-size:calc(min(5vw,7.5vh))">About</p><br>
+                    <p>
+                        This Image Editor was created by <span class="cyan">Deca Quitin</span> <br> with a bit of help from <span class="yellow">BonesYT</span>. <br><br>
+                        Inspired by <span class="green">DayDun</span> and <span class="yellow">BonesYT</span> who made similar tools.<br><br>
+
+                        <a href="https://quitin.github.io"> <p class="cyan">Deca Quitin's home page</p></a><br>
+                        <a href="https://bonesyt.github.io"> <p class="yellow">BonesYT's home page</p></a><br>
+                        <a href="https://daydun.com"> <p class="green">Daydun's home page</p></a><br>
+                    </p>
+                </div>
+
+                <div id="page-7" hidden>
+                    <div style="overflow:auto;height:60vh;border:2px solid white">
+                    <p style="font-size:calc(min(5vw,7.5vh))">Help</p><br>
+                    <p>This is an image editor which uses<br>
+                        JavaScript to generate effects.</p><br>
+                    <p>Effects are executed from left to right.</p><br>
+                    <h4>Variables</h4><br>
+                    <p>v - Pixel data of the source or the output of previous effect. Stored as an array of integers in this form:</p>
+                    
+                    <h4>[<span class="red">R</span>, <span class="green">G</span>, <span class="blue">B</span>, A]</h4><br>
+                    
+                    <p>To edit the RGBA values of the image, you have to edit one channel at a time like this: <br>v[0] = v[0] + 64;<br>v[1] = 255;<br>v[2] = x<br>, etc.<br><br> Or you can assign an array of values to v, for example: <br> v = [v[2], 128, 0, 255]</p>
+                    
+                    <br><br>
+                        
+                    <p><span class="cyan">x</span>, <span class="yellow">y</span> - Integers denoting the position.<br>
+                        Minimum is 0. (in left and top)</p><br><br>
+
+                    <p><span class="green">i</span> - Integer denoting the index of its pixel.<br>
+                        Ranges from 0 to width*height.</p><br><br>
+
+                    <p><span class="magenta">t</span> - Integer denoting the current unix epoch in milliseconds.</p><br><br>
+
+                    <p>getPixel(x,y) - Function which returns the pixel data of a pixel in a given position.</p>
+                    
+                
+                    </div>
+                </div>
+
+            </div>
+
+            <div id="right-half">
+                <div id="displayc">
+                    <canvas id="display" width=256px height=256px></canvas>
+                </div>
+            </div>
+            
+        </div>
+        <div id="infobox"></div>
+
+
+    </body>
+  </html>
